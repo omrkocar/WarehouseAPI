@@ -25,7 +25,9 @@ public class ProductRepository(WarehouseDbContext dbContext) : IProductRepositor
 
     async Task<Product?> IProductRepository.UpdateAsync(Guid id, Product product)
     {
-        var existing = await dbContext.Products.FirstOrDefaultAsync(p => p.Id == id);
+        var existing = await dbContext.Products
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == id);
         if (existing == null)
             return null;
 
