@@ -1,15 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using WarehouseAPI.Data;
+using WarehouseAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<WarehouseDbContext>(options =>
 {
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-builder.Services.AddOpenApi();
-
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 var app = builder.Build();
 
@@ -19,5 +22,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
 
 app.Run();
