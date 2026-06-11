@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WarehouseAPI.Data;
+using WarehouseAPI.Models.DTOs;
 using WarehouseAPI.Models.Entities;
 
 namespace WarehouseAPI.Repositories;
@@ -23,7 +24,7 @@ public class ProductRepository(WarehouseDbContext dbContext) : IProductRepositor
         return product;
     }
 
-    async Task<Product?> IProductRepository.UpdateAsync(Guid id, Product product)
+    async Task<Product?> IProductRepository.UpdateAsync(Guid id, UpdateProductDto dto)
     {
         var existing = await dbContext.Products
             .IgnoreQueryFilters()
@@ -31,10 +32,9 @@ public class ProductRepository(WarehouseDbContext dbContext) : IProductRepositor
         if (existing == null)
             return null;
 
-        existing.Name = product.Name;
-        existing.Description = product.Description;
-        existing.Price = product.Price;
-        existing.StockQuantity = product.StockQuantity;
+        existing.Name = dto.Name;
+        existing.Description = dto.Description;
+        existing.Price = dto.Price;
 
         await dbContext.SaveChangesAsync();
         return existing;

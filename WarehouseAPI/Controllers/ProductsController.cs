@@ -38,13 +38,23 @@ public class ProductsController(IProductRepository productRepository) : Controll
         if (product == null)
             return NotFound();
 
-        return NoContent();
+        return Ok(product);
     }
     
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var product = await productRepository.DeleteAsync(id);
+        if (product == null)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductDto dto)
+    {
+        var product = await productRepository.UpdateAsync(id, dto);
         if (product == null)
             return NotFound();
         
