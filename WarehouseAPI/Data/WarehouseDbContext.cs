@@ -16,5 +16,14 @@ public class WarehouseDbContext(DbContextOptions<WarehouseDbContext> options) : 
         modelBuilder.Entity<Order>()
             .Property(o => o.Status)
             .HasConversion<string>();
+
+        modelBuilder.Entity<Product>()
+            .HasQueryFilter(p => !p.IsDiscontinued);
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(oi => oi.Product)
+            .WithMany()
+            .HasForeignKey(oi => oi.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
