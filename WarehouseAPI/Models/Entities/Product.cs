@@ -8,4 +8,5 @@ public class Product
     public decimal Price { get; set; }
     public int StockQuantity  { get; set; }
     public bool IsDiscontinued { get; set; }
+    public Guid Version { get; set; }
 }

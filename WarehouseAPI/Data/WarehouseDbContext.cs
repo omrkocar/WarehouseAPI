@@ -25,5 +25,9 @@ public class WarehouseDbContext(DbContextOptions<WarehouseDbContext> options) : 
             .WithMany()
             .HasForeignKey(oi => oi.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Version)
+            .IsConcurrencyToken();
     }
 }
