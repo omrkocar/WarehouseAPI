@@ -9,4 +9,5 @@ public interface IOrderRepository
     Task<Result<Order>> CreateAsync(CreateOrderDto dto);
     Task<Order?> GetByIdAsync(Guid id);
     Task<List<Order>> GetAllAsync();
+    Task<Result<Order>> UpdateStatusAsync(Guid id, OrderStatus status);
 }

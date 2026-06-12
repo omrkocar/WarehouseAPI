@@ -34,4 +34,14 @@ public class OrdersController(IOrderRepository orderRepository) : ControllerBase
         var orders = await orderRepository.GetAllAsync();
         return Ok(orders.Select(o => o.ToDto()).ToList());
     }
+
+    [HttpPut("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusDto dto)
+    {
+        var result = await orderRepository.UpdateStatusAsync(id, dto.Status);
+        if (result.IsSuccess)
+            return Ok(result.Value.ToDto());
+        
+        return BadRequest(result.Error);
+    }
 }
