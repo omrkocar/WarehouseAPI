@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WarehouseAPI.Mappings;
 using WarehouseAPI.Models.DTOs;
 using WarehouseAPI.Models.Entities;
 using WarehouseAPI.Repositories;
@@ -13,7 +14,9 @@ public class ProductsController(IProductRepository productRepository) : Controll
     public async Task<IActionResult> GetAll()
     {
         var products = await productRepository.GetAllAsync();
-        return Ok(products);
+        
+        var dtoList = products.Select(p => p.ToDto()).ToList();
+        return Ok(dtoList);
     }
 
     [HttpPost]
@@ -28,7 +31,7 @@ public class ProductsController(IProductRepository productRepository) : Controll
         };
 
         var created = await productRepository.CreateAsync(product);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created.ToDto());
     }
 
     [HttpGet("{id:guid}")]
@@ -38,7 +41,7 @@ public class ProductsController(IProductRepository productRepository) : Controll
         if (product == null)
             return NotFound();
 
-        return Ok(product);
+        return Ok(product.ToDto());
     }
     
     [HttpDelete("{id:guid}")]
@@ -58,6 +61,6 @@ public class ProductsController(IProductRepository productRepository) : Controll
         if (product == null)
             return NotFound();
         
-        return Ok(product);
+        return Ok(product.ToDto());
     }
 }
