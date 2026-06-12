@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WarehouseAPI;
 using WarehouseAPI.Data;
 using WarehouseAPI.Repositories;
 
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<WarehouseDbContext>(options =>
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
