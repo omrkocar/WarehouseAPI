@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WarehouseAPI.Mappings;
 using WarehouseAPI.Models.DTOs;
 using WarehouseAPI.Models.Entities;
@@ -20,6 +21,7 @@ public class ProductsController(IProductRepository productRepository) : Controll
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
     {
         var product = new Product
@@ -45,6 +47,7 @@ public class ProductsController(IProductRepository productRepository) : Controll
     }
     
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var product = await productRepository.DeleteAsync(id);
@@ -55,6 +58,7 @@ public class ProductsController(IProductRepository productRepository) : Controll
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductDto dto)
     {
         var product = await productRepository.UpdateAsync(id, dto);

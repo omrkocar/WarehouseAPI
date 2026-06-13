@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WarehouseAPI.Mappings;
 using WarehouseAPI.Models.DTOs;
 using WarehouseAPI.Repositories;
@@ -10,6 +11,7 @@ namespace WarehouseAPI.Controllers;
 public class OrdersController(IOrderRepository orderRepository) : ControllerBase
 {
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto dto)
     {
         var result = await orderRepository.CreateAsync(dto);
@@ -36,6 +38,7 @@ public class OrdersController(IOrderRepository orderRepository) : ControllerBase
     }
 
     [HttpPut("{id:guid}/status")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusDto dto)
     {
         var result = await orderRepository.UpdateStatusAsync(id, dto.Status);
