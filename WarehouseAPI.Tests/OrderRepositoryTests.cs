@@ -74,5 +74,22 @@ public class OrderRepositoryTests : IDisposable
         Assert.Contains("greater than zero", result.Error);
     }
     
+    [Fact]
+    public async Task CreateAsync_WithNonexistentProduct_ReturnsFailure()
+    {
+        await using var context = fixture.CreateContext();
+        var repo = new OrderRepository(context, NullLogger<OrderRepository>.Instance);
+        var dto = new CreateOrderDto
+        {
+            CustomerName = "Test",
+            Items = [new CreateOrderItemDto { ProductId = Guid.NewGuid(), Quantity = 1 }]
+        };
+
+        var result = await repo.CreateAsync(dto);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("not found", result.Error);
+    }
+    
     public void Dispose() => fixture.Dispose();
 }
