@@ -90,6 +90,40 @@ public class OrderRepositoryTests : IDisposable
         Assert.False(result.IsSuccess);
         Assert.Contains("not found", result.Error);
     }
+
+    [Fact]
+    public async Task CreateAsync_ConcurrentOrdersForLastUnit_OnlyOneSucceeds()
+    {
+        var productId = Guid.NewGuid();
+        using (var context = fixture.CreateContext())
+        {
+            var product = new Product { Id = productId, Name = "Test Product", Price = 10m, StockQuantity = 1, Version = Guid.NewGuid() };
+            context.Products.Add(product);
+            await context.SaveChangesAsync();
+        }
+
+        var dto = new CreateOrderDto
+        {
+            CustomerName = "Test",
+            Items = [new CreateOrderItemDto { ProductId = productId, Quantity = 1 }]
+        };
+
+        using var contextA = fixture.CreateContext();
+        using var contextB = fixture.CreateContext();
+        var repoA = new OrderRepository(contextA, NullLogger<OrderRepository>.Instance);
+        var repoB = new OrderRepository(contextB, NullLogger<OrderRepository>.Instance);
+        
+        var taskA = repoA.CreateAsync(dto);
+        var taskB = repoB.CreateAsync(dto);
+        
+        var results = await Task.WhenAll(taskA, taskB);
+        var successCount = results.Count(r => r.IsSuccess);
+        Assert.Equal(1, successCount);
+        
+        using var verify = fixture.CreateContext();
+        var finalStock = (await verify.Products.FindAsync(productId))!.StockQuantity;
+        Assert.Equal(0, finalStock);
+    }
     
     public void Dispose() => fixture.Dispose();
 }
