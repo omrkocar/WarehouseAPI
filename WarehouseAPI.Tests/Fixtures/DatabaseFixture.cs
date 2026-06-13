@@ -21,6 +21,7 @@ public class DatabaseFixture : IDisposable
 
     public void Dispose()
     {
+        SqliteConnection.ClearAllPools();
         if (File.Exists(dbPath))
             File.Delete(dbPath);
     }
