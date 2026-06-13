@@ -53,5 +53,26 @@ public class OrderRepositoryTests : IDisposable
         Assert.Equal(2, (await context.Products.FindAsync(product.Id))!.StockQuantity); // quantity must be unchanged
     }
     
+    [Fact]
+    public async Task CreateAsync_WithZeroQuantity_ReturnsFailure()
+    {
+        await using var context = fixture.CreateContext();
+        var product = new Product { Name = "Test Product", Price = 10m, StockQuantity = 5, Version = Guid.NewGuid() };
+        context.Products.Add(product);
+        await context.SaveChangesAsync();
+
+        var repo = new OrderRepository(context, NullLogger<OrderRepository>.Instance);
+        var dto = new CreateOrderDto
+        {
+            CustomerName = "Test",
+            Items = [new CreateOrderItemDto { ProductId = product.Id, Quantity = 0 }]
+        };
+
+        var result = await repo.CreateAsync(dto);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("greater than zero", result.Error);
+    }
+    
     public void Dispose() => fixture.Dispose();
 }
