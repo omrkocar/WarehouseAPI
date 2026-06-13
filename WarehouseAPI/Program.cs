@@ -58,6 +58,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
 
 using (var scope = app.Services.CreateScope())
 {
