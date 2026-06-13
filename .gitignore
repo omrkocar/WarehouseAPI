@@ -8,3 +8,4 @@ riderModule.iml
 *.db-wal
 .idea/
 WarehouseAPI.sln.DotSettings.user
+WarehouseAPI/logs

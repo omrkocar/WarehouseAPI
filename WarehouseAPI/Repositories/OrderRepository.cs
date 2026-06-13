@@ -6,7 +6,7 @@ using WarehouseAPI.Models.Entities;
 
 namespace WarehouseAPI.Repositories;
 
-public class OrderRepository(WarehouseDbContext dbContext) : IOrderRepository
+public class OrderRepository(WarehouseDbContext dbContext, ILogger<OrderRepository> logger) : IOrderRepository
 {
     public async Task<Result<Order>> CreateAsync(CreateOrderDto dto)
     {
@@ -28,14 +28,25 @@ public class OrderRepository(WarehouseDbContext dbContext) : IOrderRepository
                     .FirstOrDefaultAsync(p => p.Id == itemDto.ProductId);
 
                 if (product == null)
+                {
+                    logger.LogWarning("Order rejected: product {ProductId} not found.", itemDto.ProductId);
                     return Result<Order>.Failure($"Product {itemDto.ProductId} not found.");
+                }
 
                 if (itemDto.Quantity <= 0)
+                {
+                    logger.LogWarning("Order rejected: invalid quantity {Quantity} for product {ProductId}.",
+                        itemDto.Quantity, product.Id);
                     return Result<Order>.Failure($"Quantity for product {product.Id} must be greater than zero.");
+                }
 
                 if (product.StockQuantity < itemDto.Quantity)
+                {
+                    logger.LogWarning("Order rejected: insufficient stock for product {ProductId} ('{ProductName}'). Requested {Requested}, available {Available}.",
+                        product.Id, product.Name, itemDto.Quantity, product.StockQuantity);
                     return Result<Order>.Failure(
                         $"Insufficient stock for '{product.Name}'. Requested {itemDto.Quantity}, only {product.StockQuantity} available.");
+                }
 
                 product.StockQuantity -= itemDto.Quantity;
                 product.Version = Guid.NewGuid();
@@ -53,6 +64,9 @@ public class OrderRepository(WarehouseDbContext dbContext) : IOrderRepository
             try
             {
                 await dbContext.SaveChangesAsync();
+                
+                logger.LogInformation("Order {OrderId} created for {CustomerName} with {ItemCount} items, total {Total}",
+                    order.Id, order.CustomerName, order.Items.Count, order.Items.Sum(i => i.Quantity * i.PriceAtOrder));
                 return Result<Order>.Success(order);
             }
             catch (DbUpdateConcurrencyException)
@@ -66,6 +80,7 @@ public class OrderRepository(WarehouseDbContext dbContext) : IOrderRepository
             }
         }
 
+        logger.LogWarning("Order rejected: High demand.");
         return Result<Order>.Failure("The order could not be placed due to high demand. Please try again.");
     }
 
