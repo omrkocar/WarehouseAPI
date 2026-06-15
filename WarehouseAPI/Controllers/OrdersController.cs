@@ -43,7 +43,7 @@ public class OrdersController(IOrderRepository orderRepository) : ControllerBase
     {
         var result = await orderRepository.UpdateStatusAsync(id, dto.Status);
         if (result.IsSuccess)
-            return Ok(result.Value.ToDto());
+            return Ok(result.Value!.ToDto());
         
         return BadRequest(result.Error);
     }
