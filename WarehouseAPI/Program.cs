@@ -49,7 +49,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<WarehouseDbContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -63,6 +63,8 @@ app.UseSerilogRequestLogging();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<WarehouseDbContext>();
+    db.Database.Migrate();
+    
     if (!db.Users.Any(u => u.Role == "Admin"))
     {
         db.Users.Add(new User
