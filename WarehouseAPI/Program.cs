@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
@@ -76,7 +77,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 if (builder.Environment.IsDevelopment())
     builder.Services.AddDbContext<WarehouseDbContext>(o => o.UseSqlite(connectionString));
 else
-    builder.Services.AddDbContext<WarehouseDbContext>(o => o.UseNpgsql(connectionString));
+    builder.Services.AddDbContext<WarehouseDbContext>(options =>
+    {
+        options.UseNpgsql(connectionString);
+        options.ConfigureWarnings(w =>
+            w.Ignore(RelationalEventId.PendingModelChangesWarning));
+    });
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
