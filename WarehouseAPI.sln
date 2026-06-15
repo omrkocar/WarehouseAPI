@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseAPI", "WarehouseAPI\WarehouseAPI.csproj", "{825D1422-EC10-4E05-B98D-A48779718A8E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WarehouseAPI", "WarehouseAPI", "{77FAFA56-A024-1FDE-AA25-D670255328BD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseAPI.Tests", "WarehouseAPI.Tests\WarehouseAPI.Tests.csproj", "{0EAB2939-0301-4E2C-9ADE-9B802EC31AF1}"
 EndProject
 Global
@@ -45,6 +43,5 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{0EAB2939-0301-4E2C-9ADE-9B802EC31AF1} = {77FAFA56-A024-1FDE-AA25-D670255328BD}
 	EndGlobalSection
 EndGlobal
