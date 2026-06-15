@@ -89,7 +89,10 @@ app.UseSerilogRequestLogging();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<WarehouseDbContext>();
-    db.Database.Migrate();
+    if (app.Environment.IsDevelopment())
+        db.Database.EnsureCreated();  // SQLite locally — no migrations needed
+    else
+        db.Database.Migrate();
     
     if (!db.Users.Any(u => u.Role == "Admin"))
     {
