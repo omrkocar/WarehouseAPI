@@ -63,6 +63,8 @@ app.UseSerilogRequestLogging();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<WarehouseDbContext>();
+    db.Database.Migrate();
+    
     if (!db.Users.Any(u => u.Role == "Admin"))
     {
         db.Users.Add(new User
