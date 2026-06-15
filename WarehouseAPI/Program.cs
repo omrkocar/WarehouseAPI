@@ -2,6 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 using Serilog;
 using WarehouseAPI;
 using WarehouseAPI.Common;
@@ -45,12 +47,36 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddOpenApi();
-
-builder.Services.AddDbContext<WarehouseDbContext>(options =>
+builder.Services.AddOpenApi("v1", options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.AddDocumentTransformer((document, context, ct) =>
+    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        };
+
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
+
+        return Task.CompletedTask;
+    });
 });
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddDbContext<WarehouseDbContext>(o => o.UseSqlite(connectionString));
+else
+    builder.Services.AddDbContext<WarehouseDbContext>(o => o.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -80,6 +106,14 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.Title = "WarehouseAPI";
+        options.Authentication = new ScalarAuthenticationOptions
+        {
+            PreferredSecuritySchemes = ["Bearer"]
+        };
+    });
 }
 
 app.UseHttpsRedirection();
