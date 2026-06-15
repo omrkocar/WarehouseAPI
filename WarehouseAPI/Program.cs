@@ -112,18 +112,15 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+app.MapScalarApiReference(options =>
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
+    options.Title = "WarehouseAPI";
+    options.Authentication = new ScalarAuthenticationOptions
     {
-        options.Title = "WarehouseAPI";
-        options.Authentication = new ScalarAuthenticationOptions
-        {
-            PreferredSecuritySchemes = ["Bearer"]
-        };
-    });
-}
+        PreferredSecuritySchemes = ["Bearer"]
+    };
+});
 
 app.UseHttpsRedirection();
 app.MapControllers();
