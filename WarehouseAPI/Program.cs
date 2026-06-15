@@ -49,7 +49,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<WarehouseDbContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
