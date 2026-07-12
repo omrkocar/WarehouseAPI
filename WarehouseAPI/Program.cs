@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +40,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            NameClaimType = JwtRegisteredClaimNames.UniqueName,
+            RoleClaimType = "role"
         };
     });
 
@@ -47,6 +50,16 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendDev", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddOpenApi("v1", options =>
 {
@@ -123,6 +136,9 @@ app.MapScalarApiReference(options =>
 });
 
 app.UseHttpsRedirection();
+app.UseCors("FrontendDev");
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

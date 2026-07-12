@@ -49,9 +49,9 @@ public class AuthService(WarehouseDbContext dbContext, IConfiguration configurat
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Role, user.Role)
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.UniqueName, user.Username),
+            new("role", user.Role)
         };
 
         var key = new SymmetricSecurityKey(
