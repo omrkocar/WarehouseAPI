@@ -51,11 +51,15 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddAuthorization();
 
+var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]
+                         ?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) 
+                     ?? [];
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendDev", policy =>
+    options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -136,7 +140,7 @@ app.MapScalarApiReference(options =>
 });
 
 app.UseHttpsRedirection();
-app.UseCors("FrontendDev");
+app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
