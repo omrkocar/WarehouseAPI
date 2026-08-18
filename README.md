@@ -11,7 +11,7 @@ Demo credentials: `admin` / `Admin123!`. Hosted on Render's free tier, so the fi
 
 ## Stack
 
-ASP.NET Core (.NET 10) · Entity Framework Core + Npgsql · PostgreSQL · JWT Bearer auth · BCrypt.Net · Serilog · Scalar · xUnit · Docker
+ASP.NET Core (.NET 10) · Entity Framework Core (PostgreSQL or SQL Server) · JWT Bearer auth · BCrypt.Net · Serilog · Scalar · xUnit · Docker
 
 ---
 
@@ -37,6 +37,8 @@ ASP.NET Core (.NET 10) · Entity Framework Core + Npgsql · PostgreSQL · JWT Be
 **DTO boundaries in both directions.** Input DTOs prevent over-posting: `UpdateProductDto` excludes `StockQuantity` because stock is a server-side operation, not a free-form field. Output DTOs control exposure — `IsDiscontinued` is internal and never leaves the API.
 
 **Scalar over Swagger UI.** Swashbuckle was dropped from .NET 9+ templates. Scalar has first-class .NET 10 support and no package version conflicts.
+
+**Database provider is config-driven.** `Database:Provider` selects PostgreSQL (default) or SQL Server at startup, so the same codebase runs against Render/Postgres or Azure SQL without a branch. SQL Server's migrations live in a separate project, `WarehouseAPI.Migrations.SqlServer`, which references `WarehouseAPI` rather than the reverse — that keeps the two providers' migration histories independent without a circular project reference. Because that project isn't a build-time dependency of `WarehouseAPI` itself, its assembly isn't in `deps.json` and has to be loaded explicitly (`Assembly.LoadFrom`) before EF's migrations lookup can find it. Azure SQL's serverless tier auto-pauses when idle, so the SQL Server path also enables retry-on-failure (up to 8 attempts) to ride out the ~30-60s resume.
 
 ---
 
@@ -101,9 +103,9 @@ Scalar is then at `http://localhost:5108/scalar/v1`.
 
 ## Known Limitations
 
-- Render's free tier cold starts after 15 minutes of inactivity (~30s first response)
+- Render's free tier cold starts after 15 minutes of inactivity (~30s first response); Azure SQL serverless has the same cold-start behavior on its own timer
 - The free PostgreSQL instance expires periodically and is recreated; schema and the seed admin rebuild automatically on startup
-- SQLite locally and in tests vs PostgreSQL in production — EF Core abstracts this, though SQLite's file-level locking differs from PostgreSQL's row-level locking, as noted in the concurrency test
+- SQLite locally and in tests vs PostgreSQL/SQL Server in production — EF Core abstracts this, though SQLite's file-level locking differs from row-level locking on the server engines, as noted in the concurrency test
 - No token revocation — JWTs are stateless and valid until expiry; logout is client-side only
 
 ---
@@ -130,6 +132,10 @@ WarehouseAPI.Tests/
 ├── OrderRepositoryTests.cs   order rules + concurrency
 ├── OrderStateMachineTests.cs status transition matrix
 └── ProductsEndpointTests.cs  HTTP-level auth, roles, CRUD
+
+WarehouseAPI.Migrations.SqlServer/
+└── Migrations/                SQL Server migration history (kept separate from the
+                                default PostgreSQL migrations under WarehouseAPI/Migrations)
 ```
 
 ---

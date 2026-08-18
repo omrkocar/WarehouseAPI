@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -92,8 +93,27 @@ builder.Services.AddOpenApi("v1", options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
+var databaseProvider = builder.Configuration["Database:Provider"] ?? "Postgres";
+
 if (builder.Environment.IsDevelopment())
     builder.Services.AddDbContext<WarehouseDbContext>(o => o.UseSqlite(connectionString));
+else if (databaseProvider == "SqlServer")
+{
+    var migrationsAssemblyPath = Path.Combine(AppContext.BaseDirectory, "WarehouseAPI.Migrations.SqlServer.dll");
+    if (File.Exists(migrationsAssemblyPath))
+        Assembly.LoadFrom(migrationsAssemblyPath);
+
+    builder.Services.AddDbContext<WarehouseDbContext>(options =>
+    {
+        options.UseSqlServer(connectionString, x =>
+        {
+            x.MigrationsAssembly("WarehouseAPI.Migrations.SqlServer");
+            x.EnableRetryOnFailure(maxRetryCount: 8, maxRetryDelay: TimeSpan.FromSeconds(15), errorNumbersToAdd: null);
+        });
+        options.ConfigureWarnings(w =>
+            w.Ignore(RelationalEventId.PendingModelChangesWarning));
+    });
+}
 else
     builder.Services.AddDbContext<WarehouseDbContext>(options =>
     {

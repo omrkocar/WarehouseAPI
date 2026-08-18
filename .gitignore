@@ -1,5 +1,8 @@
 bin/
 obj/
+/publish/
+/publish2/
+/deploy.zip
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
